@@ -7,6 +7,12 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+Three core actions this app should contain is:
+1. Allow a user to enter basic owner + pet info
+2. Add/edit tasks
+3. Generate a schedule
+Classes would be, Owner, Pet, Task, Schedule
+
 **b. Design changes**
 
 - Did your design change during implementation?
