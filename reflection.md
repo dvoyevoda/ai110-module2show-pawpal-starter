@@ -18,6 +18,8 @@ Classes would be, Owner, Pet, Task, Schedule
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
 
+Yes. Owner now holds a list of Pet objects and Pet now holds a list of Task objects, so the code actually reflects the relationships defined in the UML diagram. generate_schedule() also received a preferences parameter because the README requires the scheduler to consider owner preferences, and without it the method would have had no way to access that data when implemented.
+
 ---
 
 ## 2. Scheduling Logic and Tradeoffs
