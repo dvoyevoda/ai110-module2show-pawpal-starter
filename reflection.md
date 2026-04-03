@@ -47,10 +47,25 @@ The scheduler uses a greedy algorithm instead of an optimal knapsack solver. Thi
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
 - What kinds of prompts or questions were most helpful?
 
+I used AI for brainstorming, debugging, and polishing the code/UI.
+
+- For design, I asked for feedback on class responsibilities and method names.
+- For debugging, I asked why specific behaviors failed and what to test next.
+- For refactoring, I asked how to simplify repeated logic and improve readability.
+
+The most helpful prompts were specific ones, like:
+- "What edge cases should I test for recurring tasks?"
+- "Why is this conflict detection rule missing warnings?"
+- "How can I clean up this UI code without changing behavior?"
+
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
+
+One time, I got a suggestion that added extra complexity to scheduling logic that I did not need for this scope. I did not copy it directly.
+
+Instead, I kept the simpler greedy logic and verified it with tests. I only accepted changes that passed tests and matched the project requirements.
 
 ---
 
@@ -61,10 +76,28 @@ The scheduler uses a greedy algorithm instead of an optimal knapsack solver. Thi
 - What behaviors did you test?
 - Why were these tests important?
 
+I tested the most important scheduling behaviors:
+
+- Sorting tasks by time slot
+- Recurring task creation when a task is completed
+- Conflict detection warnings
+- Schedule packing within available time
+- Priority and preference effects on task selection
+
+These tests were important because they cover the core logic of the app. If these fail, the schedule can become unrealistic or misleading.
+
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
+
+I am fairly confident (about 4/5) that the scheduler works correctly for normal use cases.
+
+If I had more time, I would test:
+- very large task lists
+- more unusual input values
+- more UI-level integration cases
+- cases where many tasks have the same priority and time slot
 
 ---
 
@@ -74,10 +107,24 @@ The scheduler uses a greedy algorithm instead of an optimal knapsack solver. Thi
 
 - What part of this project are you most satisfied with?
 
+I am most satisfied with the overall structure and test coverage. The class design is clean, and the scheduler behavior is understandable.
+
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
 
+In another iteration, I would add full task editing/deleting in the UI and save data to a database so user data persists between sessions. I would also improve schedule visualization, like showing a timeline view.
+
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+
+My biggest takeaway is that clear structure plus testing makes development much easier. AI helped me move faster, but I still needed to verify every suggestion with logic checks and tests.
+
+---
+
+## 🖥️ Demo
+
+<a href="/course_images/ai110/ui.png" target="_blank">
+  <img src="/course_images/ai110/ui.png" alt="PawPal+ UI screenshot" />
+</a>
