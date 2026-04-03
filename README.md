@@ -22,6 +22,20 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Smarter Scheduling
+
+Beyond the basic greedy scheduler, PawPal+ includes several algorithmic improvements that make the daily plan more realistic for a pet owner:
+
+- **Time-of-day sorting** — Every task has a `time_slot` (morning, midday, evening, or anytime). After the scheduler selects which tasks fit the time budget, it sorts them chronologically using `sort_by_time_slot()` so the output reads like a real daily agenda.
+- **Multi-criteria filtering** — `Owner.filter_tasks()` lets you narrow tasks by pet name, completion status, and/or time slot in a single call. Filters are independent and composable.
+- **Recurring task automation** — Tasks with a `recurrence` of daily, weekly, or monthly automatically generate a new instance when marked complete. The next due date is calculated with Python's `timedelta` (e.g. daily = today + 1 day, monthly = today + 30 days).
+- **Conflict detection** — `detect_conflicts()` scans the task list for four kinds of problems and returns human-readable warnings instead of crashing:
+  1. Duplicate task names for the same pet.
+  2. A single pet's time-slot load exceeding 90 minutes.
+  3. Multiple tasks of the same category in one slot for the same pet.
+  4. Different pets with tasks in the same slot (the owner can't be in two places at once).
+- **Leftover-time suggestions** — After scheduling, `suggest_fillers()` identifies skipped tasks that would still fit in the remaining free minutes.
+
 ## Getting started
 
 ### Setup
