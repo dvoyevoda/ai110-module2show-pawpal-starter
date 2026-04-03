@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import date
-from pawpal_system import Owner, Pet, Task, Schedule, detect_conflicts
+from pawpal_system import Owner, Pet, Task, Schedule, sort_by_time_slot
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -9,6 +9,26 @@ if "owner" not in st.session_state:
     st.session_state.owner = Owner(name="", available_time=60)
 
 owner: Owner = st.session_state.owner
+
+
+def task_rows(tasks: list[Task]) -> list[dict[str, str | int]]:
+    """Convert Task objects into table-friendly dictionaries."""
+    rows: list[dict[str, str | int]] = []
+    for task in tasks:
+        rows.append(
+            {
+                "Pet": task.pet_name or "-",
+                "Task": task.name,
+                "Category": task.category,
+                "Time": task.time_slot,
+                "Duration (min)": task.duration,
+                "Priority": task.priority,
+                "Recurs": task.recurrence,
+                "Status": "Completed" if task.completed else "Pending",
+                "Due Date": task.due_date or "-",
+            }
+        )
+    return rows
 
 # ---------- Header ----------
 st.title("🐾 PawPal+")
@@ -69,26 +89,18 @@ if owner.pets:
     status_filter = None if filter_status == "All" else filter_status.lower()
     time_filter = filter_time
 
-    filtered = owner.filter_tasks(pet_name=pet_filter, status=status_filter, time_slot=time_filter)
+    filtered = owner.filter_tasks(
+        pet_name=pet_filter,
+        status=status_filter,
+        time_slot=time_filter,
+    )
+    filtered_sorted = sort_by_time_slot(filtered)
 
-    if not filtered:
+    st.caption(f"Showing {len(filtered_sorted)} task(s) with current filters.")
+    if not filtered_sorted:
         st.info("No tasks match the current filters.")
     else:
-        pets_to_show = [p for p in owner.pets if (pet_filter is None or p.name == pet_filter)]
-        for pet in pets_to_show:
-            pet_tasks = [t for t in filtered if t.pet_name == pet.name]
-            if not pet_tasks:
-                continue
-            with st.expander(f"🐾 {pet.name} ({pet.species})", expanded=True):
-                for task in pet_tasks:
-                    status = "✅" if task.completed else "⬜"
-                    recur_badge = f" 🔁 {task.recurrence}" if task.recurrence != "none" else ""
-                    slot_badge = f" 🕐 {task.time_slot}" if task.time_slot != "anytime" else ""
-                    st.write(
-                        f"{status} **{task.name}** [{task.category}] — "
-                        f"{task.duration} min, priority {task.priority}"
-                        f"{slot_badge}{recur_badge}"
-                    )
+        st.table(task_rows(filtered_sorted))
 else:
     st.info("No pets yet — add one above.")
 
@@ -147,54 +159,51 @@ if st.button("Generate Schedule"):
     if not all_tasks:
         st.warning("No pending tasks found. Add tasks to your pets first.")
     else:
-        pre_conflicts = detect_conflicts(all_tasks)
-        if pre_conflicts:
-            st.markdown("#### ⚠️ Conflict Warnings")
-            for warning in pre_conflicts:
-                st.warning(warning)
-
         schedule = Schedule(date=str(date.today()))
         schedule.generate_schedule(
             tasks=all_tasks,
             available_time=owner.available_time,
             preferences=owner.preferences,
         )
+
         st.markdown("---")
         st.markdown(f"### 📅 Schedule for {schedule.date}")
-        st.markdown(f"**Time used:** {schedule.total_duration} / {owner.available_time} min")
+        utilization = int((schedule.total_duration / owner.available_time) * 100)
+        st.markdown(
+            f"**Time used:** {schedule.total_duration} / {owner.available_time} min "
+            f"({utilization}% utilized)"
+        )
 
         remaining = schedule.get_remaining_time(owner.available_time)
         if remaining > 0:
             st.caption(f"🕐 {remaining} min of free time remaining")
+        else:
+            st.success("Great! Your full available time is allocated.")
 
-        st.markdown("#### Scheduled Tasks")
-        current_slot = None
-        for i, task in enumerate(schedule.tasks, 1):
-            if task.time_slot != current_slot:
-                current_slot = task.time_slot
-                label = current_slot if current_slot != "anytime" else "Flexible"
-                st.markdown(f"**— {label.capitalize()} —**")
-            recur_tag = f" 🔁" if task.recurrence != "none" else ""
-            st.write(
-                f"{i}. **{task.name}** ({task.pet_name}) [{task.category}] "
-                f"— {task.duration} min (priority {task.priority}){recur_tag}"
+        st.markdown("#### Conflict Warnings")
+        conflicts = schedule.get_conflicts()
+        if conflicts:
+            for warning in conflicts:
+                st.warning(warning)
+            st.info(
+                "Tip: Shift one of the conflicting tasks to a different time slot "
+                "or reduce overlap between pets."
             )
+        else:
+            st.success("No schedule conflicts detected.")
 
-        if schedule._skipped:
+        st.markdown("#### Scheduled Tasks (Sorted Chronologically)")
+        st.table(task_rows(schedule.tasks))
+
+        skipped_tasks = schedule.get_skipped_tasks()
+        if skipped_tasks:
             st.markdown("#### Skipped (not enough time)")
-            for task in schedule._skipped:
-                st.write(
-                    f"- ~~{task.name}~~ ({task.pet_name}) [{task.category}] "
-                    f"— {task.duration} min (priority {task.priority})"
-                )
+            st.table(task_rows(skipped_tasks))
 
             fillers = schedule.suggest_fillers(owner.available_time)
             if fillers:
                 st.markdown("#### 💡 Could still fit")
-                for task in fillers:
-                    st.write(
-                        f"- {task.name} ({task.pet_name}) — {task.duration} min"
-                    )
+                st.table(task_rows(fillers))
 
         with st.expander("📝 Full reasoning"):
             st.text(schedule.explain_reasoning())

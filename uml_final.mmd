@@ -1,0 +1,73 @@
+classDiagram
+direction TB
+
+class Task {
+  +name: str
+  +category: str
+  +duration: int
+  +priority: int
+  +description: str
+  +completed: bool
+  +time_slot: str
+  +recurrence: str
+  +pet_name: str
+  +due_date: str
+  +mark_complete() Task|None
+  +is_complete() bool
+}
+
+class Pet {
+  +name: str
+  +species: str
+  +breed: str
+  +age: int
+  +tasks: list~Task~
+  +add_task(task: Task) None
+  +mark_task_complete(task_name: str) Task|None
+  +remove_task(task_name: str) bool
+  +get_pending_tasks() list~Task~
+  +get_tasks_by_status(completed: bool) list~Task~
+  +get_tasks_by_time_slot(slot: str) list~Task~
+}
+
+class Owner {
+  +name: str
+  +available_time: int
+  +preferences: list~str~
+  +pets: list~Pet~
+  +add_pet(pet: Pet) None
+  +get_all_tasks() list~Task~
+  +get_tasks_for_pet(pet_name: str) list~Task~
+  +sort_tasks_by_time(pet_name: str|None) list~Task~
+  +filter_tasks(pet_name: str|None, status: str|None, time_slot: str|None) list~Task~
+  +expand_recurring_tasks() None
+}
+
+class Schedule {
+  +date: str
+  +tasks: list~Task~
+  +total_duration: int
+  -_skipped: list~Task~
+  -_conflicts: list~str~
+  +generate_schedule(tasks: list~Task~, available_time: int, preferences: list~str~|None) list~Task~
+  +get_conflicts() list~str~
+  +get_skipped_tasks() list~Task~
+  +get_remaining_time(available_time: int) int
+  +suggest_fillers(available_time: int) list~Task~
+  +explain_reasoning() str
+  +get_total_duration() int
+}
+
+class SchedulingUtils {
+  <<module functions>>
+  +sort_by_time_slot(tasks: list~Task~) list~Task~
+  +detect_conflicts(tasks: list~Task~) list~str~
+}
+
+Owner "1" o-- "*" Pet : manages
+Pet "1" o-- "*" Task : has
+Schedule --> Task : schedules
+Owner ..> Schedule : builds daily plan
+Owner ..> SchedulingUtils : uses sorting helpers
+Schedule ..> SchedulingUtils : uses conflict checks
+Task ..> Task : creates next recurring instance

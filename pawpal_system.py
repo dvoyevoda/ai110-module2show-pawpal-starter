@@ -368,6 +368,10 @@ class Schedule:
         """Return any conflict warnings from the last schedule generation."""
         return list(self._conflicts)
 
+    def get_skipped_tasks(self) -> list[Task]:
+        """Return tasks that were skipped because they did not fit in time."""
+        return list(self._skipped)
+
     def get_remaining_time(self, available_time: int) -> int:
         """Minutes of unused available time."""
         return available_time - self.total_duration
