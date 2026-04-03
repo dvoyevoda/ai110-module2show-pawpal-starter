@@ -36,6 +36,23 @@ Beyond the basic greedy scheduler, PawPal+ includes several algorithmic improvem
   4. Different pets with tasks in the same slot (the owner can't be in two places at once).
 - **Leftover-time suggestions** — After scheduling, `suggest_fillers()` identifies skipped tasks that would still fit in the remaining free minutes.
 
+## Testing PawPal+
+
+Run the full test suite from the project root:
+
+```bash
+python -m pytest tests/test_pawpal.py -v
+```
+
+The suite contains 20 tests across four areas:
+
+- **Sorting Correctness** — Verifies tasks come back in morning → midday → evening → anytime order, stable ordering within the same slot, and safe handling of empty lists and unrecognized slot names.
+- **Recurrence Logic** — Confirms that completing a daily task creates a new instance due tomorrow (`today + 1 day`), weekly adds 7 days, monthly adds 30 days, non-recurring tasks return None, and `Pet.mark_task_complete` auto-appends the next occurrence.
+- **Conflict Detection** — Checks that duplicate task names, same-category collisions in one slot, and cross-pet same-slot overlaps all produce warnings, while `"anytime"` tasks and empty lists produce none.
+- **Schedule Packing** — Ensures the greedy algorithm never exceeds the time budget, picks higher-priority tasks first, and correctly applies the +2 preference bonus.
+
+**Confidence Level: 4 / 5** — All 20 tests pass and cover the core scheduling logic, sorting, recurrence, and conflict detection. The main gaps are integration-level tests for the Streamlit UI and edge cases around very large task lists, which would be the next areas to cover.
+
 ## Getting started
 
 ### Setup
